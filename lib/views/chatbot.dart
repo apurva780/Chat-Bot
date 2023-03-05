@@ -1,6 +1,4 @@
-// New Code 2
-
-
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
 class ChatBot extends StatefulWidget {
@@ -9,6 +7,20 @@ class ChatBot extends StatefulWidget {
 }
 
 class _ChatBotState extends State<ChatBot> {
+
+
+@override
+  void initState() {
+    
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if(!isAllowed){
+        
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    } );
+    super.initState();
+  }
+
   String _name = '';
   String _lastMessage = '';
   List<String> _messages = [];
@@ -21,14 +33,16 @@ class _ChatBotState extends State<ChatBot> {
     _textController.dispose();
     super.dispose();
   }
-
+String fullMessage = "";
   void _sendMessage() {
     final message = _textController.text.trim();
+  fullMessage = _textController.text;
     if (message.isNotEmpty) {
       setState(() {
         _messages.add('You: $message');
-        _lastMessage = message;
+        _lastMessage = fullMessage;
         _textController.clear();
+        AwesomeNotifications().createNotification(content: NotificationContent(id: 10, channelKey: 'basic_channel',title: 'Chat Bot',body: "$message"));
         _botReply();
       });
     }
@@ -48,44 +62,54 @@ class _ChatBotState extends State<ChatBot> {
     }
 
     setState(() {
-      _messages.add('ChatBot: $greeting! What\'s your name?');
+      _messages.add('ChatBot: $greeting! Utkarsh');
+      _messages.add('ChatBot: How are you?');
       _isActive = true;
     });
   }
 
   void _botReply() {
     if (_isActive) {
-      if (_lastMessage.contains('What\'s your name?')) {
+      if (_lastMessage.contains('i am fine')) {
         setState(() {
-          _name = _lastMessage.split(' ').last;
-          _messages.add('ChatBot: Hello $_name! How are you?');
+          // _name = _lastMessage.split(' ').last;
+          _messages.add('ChatBot: Good to hear that');
+          _messages.add('ChatBot: What\'s your student number?');
         });
-      } else if (_lastMessage.contains('How are you?')) {
-        if (_lastMessage.toLowerCase().contains('fine')) {
-          setState(() {
-            _messages.add('ChatBot: Good to hear that. What\'s your student number?');
-          });
-        } else {
-          setState(() {
-            _messages.add('ChatBot: I\'m sorry to hear that. What\'s your student number?');
-          });
-        }
-      } else if (_lastMessage.contains('student number')) {
-        final number = _lastMessage.replaceAll(RegExp(r'[^0-9]'), '');
-        if (number.length == 2) {
-          setState(() {
-            _messages.add('ChatBot: Your student number is $number. Goodbye $_name! Service stopped.');
-            _isActive = false;
-          });
-          Future.delayed(Duration(seconds: 2), () {
-            Navigator.of(context).pop();
-          });
-        } else {
-          setState(() {
-            _messages.add('ChatBot: Sorry, I didn\'t get that. Please enter a valid student number.');
-          });
-        }
+      } else {
+        setState(() {
+          // _name = _lastMessage.split(' ').last;
+          _messages.add('ChatBot: Service stopped ${fullMessage.substring(fullMessage.length -2)}');
+          Navigator.of(context).pop();
+          // _messages.add('ChatBot: What\'s your student number?');
+        });
       }
+      // } else if (_lastMessage.contains('How are you?')) {
+      //   if (_lastMessage.toLowerCase().contains('fine')) {
+      //     setState(() {
+      //       _messages.add('ChatBot: Good to hear that. What\'s your student number?');
+      //     });
+      //   } else {
+      //     setState(() {
+      //       _messages.add('ChatBot: I\'m sorry to hear that. What\'s your student number?');
+      //     });
+      //   }
+      // } else if (_lastMessage.contains('student number')) {
+      //   final number = _lastMessage.replaceAll(RegExp(r'[^0-9]'), '');
+      //   if (number.length == 2) {
+      //     setState(() {
+      //       _messages.add('ChatBot: Your student number is $number. Goodbye $_name! Service stopped.');
+      //       _isActive = false;
+      //     });
+      //     Future.delayed(Duration(seconds: 2), () {
+      //       Navigator.of(context).pop();
+      //     });
+      //   } else {
+      //     setState(() {
+      //       _messages.add('ChatBot: Sorry, I didn\'t get that. Please enter a valid student number.');
+      //     });
+      //   }
+      // }
     }
   }
 
