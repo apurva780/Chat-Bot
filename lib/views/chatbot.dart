@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +16,6 @@ class _ChatBotState extends State<ChatBot> {
     
     AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
       if(!isAllowed){
-        
         AwesomeNotifications().requestPermissionToSendNotifications();
       }
     } );
@@ -25,6 +26,8 @@ class _ChatBotState extends State<ChatBot> {
   String _lastMessage = '';
   List<String> _messages = [];
   bool _isActive = false;
+  bool isEnrollmentNumberEntered = false;
+  int enrollmentNumber = 0;
 
   final _textController = TextEditingController();
 
@@ -42,7 +45,14 @@ String fullMessage = "";
         _messages.add('You: $message');
         _lastMessage = fullMessage;
         _textController.clear();
-        AwesomeNotifications().createNotification(content: NotificationContent(id: 10, channelKey: 'basic_channel',title: 'Chat Bot',body: "$message"));
+        if(double.tryParse(_lastMessage) != null){
+          if(isEnrollmentNumberEntered){
+            enrollmentNumber= int.parse(message.replaceAll(RegExp(r'[^0-9]'),''));
+          }
+           AwesomeNotifications().createNotification(content: NotificationContent(largeIcon: 'https://t3.ftcdn.net/jpg/03/22/38/32/360_F_322383277_xcXz1I9vOFtdk7plhsRQyjODj08iNSwB.jpg',id: 10, channelKey: 'basic_channel',title: 'Samir',body: "${enrollmentNumber.toString().substring(fullMessage.length -2)}",actionType: ActionType.KeepOnTop));
+           _botReply();   
+        }
+        AwesomeNotifications().createNotification(content: NotificationContent(largeIcon: 'https://t3.ftcdn.net/jpg/03/22/38/32/360_F_322383277_xcXz1I9vOFtdk7plhsRQyjODj08iNSwB.jpg',id: 10, channelKey: 'basic_channel',title: 'Samir',body: "$message",actionType: ActionType.KeepOnTop));
         _botReply();
       });
     }
@@ -62,125 +72,56 @@ String fullMessage = "";
     }
 
     setState(() {
-      _messages.add('ChatBot: $greeting! Utkarsh');
-      _messages.add('ChatBot: How are you?');
+      
+      _messages.add('ChatBot: $greeting!');
+      
+      _messages.add('ChatBot: What\'s your name?');
       _isActive = true;
     });
   }
 
   void _botReply() {
     if (_isActive) {
-      if (_lastMessage.contains('i am fine')) {
+      if (_lastMessage.toLowerCase().contains('samir')) {
         setState(() {
-          // _name = _lastMessage.split(' ').last;
-          _messages.add('ChatBot: Good to hear that');
-          _messages.add('ChatBot: What\'s your student number?');
+          
+          _messages.add('ChatBot: Hello! ${_lastMessage.trim()}');
+          _messages.add('ChatBot: How are you?');
         });
-      } else {
+      } else if(_lastMessage.toLowerCase().contains('fine')){
+          setState(() {
+            _messages.add('ChatBot: Good to hear that');
+          _messages.add('ChatBot: What\'s your student number?');
+          isEnrollmentNumberEntered = true;
+          });
+      } else if(double.tryParse(_lastMessage) != null){
         setState(() {
-          // _name = _lastMessage.split(' ').last;
-          _messages.add('ChatBot: Service stopped ${fullMessage.substring(fullMessage.length -2)}');
-          Navigator.of(context).pop();
-          // _messages.add('ChatBot: What\'s your student number?');
+          _messages.add('ChatBot: Service Stopped : ${fullMessage.substring(fullMessage.length -2)}');
+        });
+        Future.delayed(Duration(seconds: 1), () {
+        exit(0);
+      });
+      }
+      else {
+        setState(() {
+          _messages.add('ChatBot: I didn\'t get that');
         });
       }
-      // } else if (_lastMessage.contains('How are you?')) {
-      //   if (_lastMessage.toLowerCase().contains('fine')) {
-      //     setState(() {
-      //       _messages.add('ChatBot: Good to hear that. What\'s your student number?');
-      //     });
-      //   } else {
-      //     setState(() {
-      //       _messages.add('ChatBot: I\'m sorry to hear that. What\'s your student number?');
-      //     });
-      //   }
-      // } else if (_lastMessage.contains('student number')) {
-      //   final number = _lastMessage.replaceAll(RegExp(r'[^0-9]'), '');
-      //   if (number.length == 2) {
-      //     setState(() {
-      //       _messages.add('ChatBot: Your student number is $number. Goodbye $_name! Service stopped.');
-      //       _isActive = false;
-      //     });
-      //     Future.delayed(Duration(seconds: 2), () {
-      //       Navigator.of(context).pop();
-      //     });
-      //   } else {
-      //     setState(() {
-      //       _messages.add('ChatBot: Sorry, I didn\'t get that. Please enter a valid student number.');
-      //     });
-      //   }
-      // }
+      
     }
   }
 
   void _stopService() {
     if (_isActive) {
       setState(() {
-        _messages.add('ChatBot: Goodbye $_name! Service stopped.');
+        _messages.add('ChatBot: Goodbye Service stopped.');
         _isActive = false;
       });
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.of(context).pop();
+      Future.delayed(Duration(seconds: 1), () {
+        exit(0);
       });
     }
   }
-  // void _sendMessage() {
-  //  message = _textController.text.trim();
-  //   if (message.isNotEmpty) {
-  //     setState(() {
-  //       _messages.add('You: $message');
-  //       _textController.clear();
-  //       _botReply();
-  //     });
-  //   }
-  // }
-
-  // void _generateMessages() {
-  //   final timeOfDay = TimeOfDay.fromDateTime(DateTime.now());
-  //   final hour = timeOfDay.hour;
-  //   String greeting;
-
-  //   if (hour < 12) {
-  //     greeting = 'Good morning';
-  //   } else if (hour < 18) {
-  //     greeting = 'Good afternoon';
-  //   } else {
-  //     greeting = 'Good evening';
-  //   }
-
-  //   setState(() {
-  //     _messages.add('ChatBot: $greeting! What\'s your name?');
-  //     _isActive = true;
-  //   });
-  // }
-
-  // void _botReply() {
-  //   if (_isActive) {
-  //     if (message.isNotEmpty) {
-  //       setState(() {
-  //         _name = _messages.last.split(' ').last;
-  //         _messages.add('ChatBot: Hello $_name! How are you?');
-  //       });
-  //     } else if (_messages.last.contains('How are you?')) {
-  //       setState(() {
-  //         _messages.add('ChatBot: I\'m doing well, thank you for asking.');
-  //       });
-  //     }
-  //   }
-  // }
-
-  // void _stopService() {
-  //   if (_isActive) {
-  //     setState(() {
-  //       _messages.add('ChatBot: Goodbye $_name! Service stopped.');
-  //       _isActive = false;
-  //     });
-  //     Future.delayed(Duration(seconds: 2), () {
-  //       Navigator.of(context).pop();
-  //     });
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,10 +159,8 @@ String fullMessage = "";
                   ),
                 ),
                 SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _sendMessage,
-                  child: Text('Send'),
-                ),
+                IconButton(onPressed: _sendMessage, icon: Icon(Icons.send),),
+                
                 SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _generateMessages,
